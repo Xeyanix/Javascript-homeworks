@@ -1,34 +1,72 @@
+class Soldier {
+  constructor(id) {
+    this.id = id;
+    this.next = null;
+    this.prev = null;
+  }
+}
 
+class Circle {
+  constructor(numSoldiers) {
+    this.numSoldiers = numSoldiers;
+    this.head = null;
+    this.tail = null;
+    this.currentSoldier = null;
 
-// 1.	Solve Josephus's Problem for 7 soldiers using JavaScript. (You can try to solve it with classes)
-// Display in the console
-// a.	1st Kills 2nd
-// b.	3rd Kills 4fourth
-// c.	5th Kills 6th
-// d.	7th Kills 1th
-// e.	3th Kills 5th
-// f.	7th Kills 3th
-// // g.	7th Remains alive
-
-class Josephus {
-    constructor(Soldiers) {
-      this.Soldiers = Soldiers;
-      this.nextSoldier = new Array(Soldiers);
-      for (let i = 0; i < Soldiers; i++) {
-        this.nextSoldier[i] = i + 1;
-      }
+    // create the circle of soldiers
+    for (let i = 1; i <= numSoldiers; i++) {
+      this.addSoldier(i);
     }
-  
-    kill(k) {
-      let i = k % this.Soldiers;
-      while (this.Soldiers > 1) {
-        this.nextSoldier.splice(i, 1);
-        this.Soldiers--;
-        i = (i + k) % this.Soldiers;
-      }
-      return this.nextSoldier[0];
+
+    // link up the soldiers
+    this.linkSoldiers();
+  }
+
+  addSoldier(id) {
+    const soldier = new Soldier(id);
+
+    if (this.head === null) {
+      this.head = soldier;
+      this.tail = soldier;
+    } else {
+      this.tail.next = soldier;
+      soldier.prev = this.tail;
+      this.tail = soldier;
     }
   }
-  
-  const josephus = new Josephus(7);
-  console.log(josephus.kill(1));
+
+  linkSoldiers() {
+    let currentSoldier = this.head;
+
+    while (currentSoldier.next !== null) {
+      currentSoldier = currentSoldier.next;
+    }
+
+    currentSoldier.next = this.head;
+    this.head.prev = currentSoldier;
+  }
+
+  play() {
+    let count = 1;
+    this.currentSoldier = this.head;
+
+    while (this.numSoldiers > 1) {
+      if (count % 2 === 0) {
+        console.log(`${this.currentSoldier.prev.id} kills ${this.currentSoldier.id}`);
+        this.currentSoldier.prev.next = this.currentSoldier.next;
+        this.currentSoldier.next.prev = this.currentSoldier.prev;
+        this.currentSoldier = this.currentSoldier.next;
+        this.numSoldiers--;
+      } else {
+        this.currentSoldier = this.currentSoldier.next;
+      }
+
+      count++;
+    }
+
+    console.log(`${this.currentSoldier.id} remains alive`);
+  }
+}
+
+const circle = new Circle(7);
+circle.play();
