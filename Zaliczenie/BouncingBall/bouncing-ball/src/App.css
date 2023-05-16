@@ -1,0 +1,37 @@
+.App {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.board {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+}
+
+.cell {
+  width: 30px;
+  height: 30px;
+  border: 1px solid black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wall {
+  background-color: gray;
+}
+
+.obstacle {
+  background-color: brown;
+}
+
+.ball {
+  background-color: red;
+  color: white;
+}
