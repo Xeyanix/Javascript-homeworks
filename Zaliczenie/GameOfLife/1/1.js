@@ -1,111 +1,115 @@
-// Stwórz canvas i inicjalizuj kontekst 2D
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+ // Wymiary planszy
+ const numRows = 40; // Zmienna przechowująca liczbę wierszy planszy. W tym przypadku ustawiona na wartość 40.
+ const numCols = 40;
 
-// Ustaw szerokość i wysokość planszy
-const WIDTH = canvas.width;
-const HEIGHT = canvas.height;
+ // Tworzenie planszy
+ const board = document.getElementById("board"); //Pobiera element o identyfikatorze "board" z drzewa DOM. Ten element reprezentuje planszę gry.
 
-// Ustaw rozmiar pojedynczej komórki
-const CELL_SIZE = 10;
+ for (let i = 0; i < numRows; i++) { // Pętla iterująca przez wiersze planszy.
+   const row = document.createElement("tr"); // Pętla iterująca przez wiersze planszy.
+   for (let j = 0; j < numCols; j++) {
+     const cell = document.createElement("td");  //Tworzy nowy element HTML td, który będzie reprezentować jedno pole na planszy.
+     cell.classList.add("cell"); //Dodaje klasę "cell" do pola, umożliwiającą stylizację za pomocą CSS.
+     cell.addEventListener("click", toggleCellState); //Dodaje nasłuchiwanie na zdarzenie kliknięcia pola, które uruchomi funkcję toggleCellState.
+     row.appendChild(cell);   //Dodaje pole do aktualnego wiersza planszy.
+   }
+   board.appendChild(row);// Dodaje wiersz do planszy.
+ }
 
-// Oblicz liczbę komórek wzdłuż osi X i Y
-const NUM_COLS = Math.floor(WIDTH / CELL_SIZE);
-const NUM_ROWS = Math.floor(HEIGHT / CELL_SIZE);
+ // Obsługa dodawania/usuwania pól
+ function toggleCellState() { //Definicja funkcji toggleCellState, która zostanie wywołana po kliknięciu na pole.
+   this.classList.toggle("alive");
+ }
 
-// Inicjalizuj planszę
-let grid = createEmptyGrid();
+ // Rozpoczęcie gry
+ const startButton = document.getElementById("startButton");
+ startButton.addEventListener("click", startGame);
 
-// Zmienna przechowująca stan gry
-let isRunning = false;
+ let isGameRunning = false;
+ let intervalId; //Zmienna przechowująca identyfikator interwału, który będzie używany do cyklicznego wywoływania funkcji updateBoard.
 
-// Funkcja tworząca pustą planszę
-function createEmptyGrid() {
-  const rows = new Array(NUM_ROWS);
-  for (let i = 0; i < NUM_ROWS; i++) {
-    rows[i] = new Array(NUM_COLS).fill(0);
-  }
-  return rows;
+ //Ta funkcja obsługuje rozpoczęcie i zatrzymanie gry. Sprawdza wartość zmiennej isGameRunning, która wskazuje, czy gra jest aktualnie uruchomiona. 
+ //Jeśli jest, to zatrzymuje grę, czyszcząc interwał za pomocą clearInterval(), ustawia wartość isGameRunning na false i zmienia tekst przycisku na "Start Game". 
+ //W przeciwnym razie, jeśli gra nie jest uruchomiona, ustawia interwał za pomocą setInterval() na wywoływanie funkcji updateBoard() co 100 milisekund,
+ // ustawia wartość isGameRunning na true i zmienia tekst przycisku na "Stop Game".
+
+ function startGame() { 
+   if (isGameRunning) {
+     clearInterval(intervalId);
+     isGameRunning = false;
+     startButton.textContent = "Start Game";
+   } else {
+     intervalId = setInterval(updateBoard, 100);
+     isGameRunning = true;
+     startButton.textContent = "Stop Game";
+   }
+ }
+
+//Ta funkcja updateBoard() jest odpowiedzialna za aktualizację stanu planszy gry. 
+//Pobiera wszystkie elementy o klasie "cell" (czyli pola planszy) za pomocą document.getElementsByClassName("cell") i zamienia je na tablicę za pomocą Array.from(), aby móc na niej operować. 
+//Tworzy również pustą tablicę newState, która będzie przechowywać nowy stan komórek.
+//Następnie, dla każdego pola na planszy, sprawdza, czy jest żywe (cellIsAlive) oraz ilość żywych sąsiadów (neighbors) za pomocą funkcji countAliveNeighbors(). 
+//Na podstawie tych informacji decyduje, czy komórka powinna umrzeć, ożyć lub pozostać bez zmiany. W zależności od tego, dodaje false, true lub aktualny stan komórki do tablicy newState.
+
+
+ // Aktualizacja planszy
+ function updateBoard() {
+   const cells = document.getElementsByClassName("cell");
+   const cellsArray = Array.from(cells);
+   const newState = [];
+
+   for (let i = 0; i < cellsArray.length; i++) {
+     const cell = cellsArray[i];
+     const cellIsAlive = cell.classList.contains("alive");
+     const neighbors = countAliveNeighbors(i, cellsArray);
+
+     if (cellIsAlive && (neighbors < 2 || neighbors > 3)) {
+       newState.push(false); // Komórka umiera
+     } else if (!cellIsAlive && neighbors === 3) {
+       newState.push(true); // Komórka ożywa
+     } else {
+       newState.push(cellIsAlive); // Brak zmiany stanu komórki
+     }
+   }
+
+//Na koniec, iteruje przez wszystkie komórki planszy i aktualizuje ich stan na podstawie wartości w tablicy newState.
+
+   // Aktualizacja stanu planszy
+   for (let i = 0; i < cellsArray.length; i++) {
+     const cell = cellsArray[i];
+     if (newState[i]) {
+       cell.classList.add("alive");
+     } else {
+       cell.classList.remove("alive");
+     }
+   }
+ }
+
+// Funkcja pomocnicza do zliczania żywych sąsiadów komórki
+function countAliveNeighbors(index, cellsArray) {
+const numRows = 40;
+const numCols = 40;
+const directions = [
+ [-1, -1], [0, -1], [1, -1],
+ [-1, 0],           [1, 0],
+ [-1, 1], [0, 1], [1, 1]
+];
+
+let count = 0;
+const row = Math.floor(index / numCols);
+const col = index % numCols;
+
+for (const [dx, dy] of directions) {
+ const newRow = row + dy;
+ const newCol = col + dx;
+
+ if (newRow >= 0 && newRow < numRows && newCol >= 0 && newCol < numCols) {
+   const neighborIndex = newRow * numCols + newCol;
+   if (cellsArray[neighborIndex].classList.contains("alive")) {
+     count++;
+   }
+ }
 }
 
-// Funkcja rysująca planszę na canvasie
-function drawGrid() {
-  ctx.clearRect(0, 0, WIDTH, HEIGHT);
-  for (let row = 0; row < NUM_ROWS; row++) {
-    for (let col = 0; col < NUM_COLS; col++) {
-      if (grid[row][col] === 1) {
-        ctx.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-      }
-    }
-  }
+return count;
 }
-
-// Funkcja aktualizująca stan planszy
-function updateGrid() {
-  const newGrid = createEmptyGrid();
-  for (let row = 0; row < NUM_ROWS; row++) {
-    for (let col = 0; col < NUM_COLS; col++) {
-      const cell = grid[row][col];
-      const neighbors = countNeighbors(row, col);
-
-      if (cell === 1 && (neighbors < 2 || neighbors > 3)) {
-        newGrid[row][col] = 0;
-      } else if (cell === 0 && neighbors === 3) {
-        newGrid[row][col] = 1;
-      } else {
-        newGrid[row][col] = cell;
-      }
-    }
-  }
-  grid = newGrid;
-}
-
-// Funkcja zliczająca liczbę sąsiadujących komórek
-function countNeighbors(row, col) {
-  let count = 0;
-  for (let i = -1; i <= 1; i++) {
-    for (let j = -1; j <= 1; j++) {
-      const neighborRow = (row + i + NUM_ROWS) % NUM_ROWS;
-      const neighborCol = (col + j + NUM_COLS) % NUM_COLS;
-      count += grid[neighborRow][neighborCol];
-    }
-  }
-  count -= grid[row][col];
-  return count;
-}
-
-// Funkcja obsługująca kliknięcie na planszę
-function handleClick(event) {
-  const rect = canvas.getBoundingClientRect();
-  const mouseX = event.clientX - rect.left;
-  const mouseY = event.clientY - rect.top;
-
-  const col = Math.floor(mouseX / CELL_SIZE);
-  const row = Math.floor(mouseY / CELL_SIZE);
-
-  grid[row][col] = 1;
-  drawGrid();
-}
-
-// Funkcja przycisku start stop
-function handleStartStop() {
-  isRunning = !isRunning;
-  if (isRunning) {
-  startGame();
-  }
-  }
-  
-  // Funkcja rozpoczynająca grę
-  function startGame() {
-  if (!isRunning) return;
-  updateGrid();
-  drawGrid();
-  setTimeout(startGame, 100); // Aktualizuj planszę co 100 ms
-  }
-  
-  // Dodaj nasłuchiwanie zdarzeń dla planszy i przycisku
-  canvas.addEventListener("click", handleClick);
-  document.getElementById("startStopButton").addEventListener("click", handleStartStop);
-  
-  // Inicjalnie narysuj pustą planszę
-  drawGrid();
