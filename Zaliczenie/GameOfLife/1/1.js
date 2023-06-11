@@ -21,6 +21,41 @@
    this.classList.toggle("alive");
  }
 
+// Generowanie losowej planszy
+const randomizeButton = document.getElementById("randomizeButton"); 
+randomizeButton.addEventListener("click", generateRandomLayout); // Dodaje nasłuchiwanie na kliknięcie przycisku randomizeButton. Po kliknięciu wywoływana jest funkcja generateRandomLayout.
+
+function generateRandomLayout() {                        //Rozpoczyna definicję funkcji generateRandomLayout. Ta funkcja generuje losową planszę.
+  const cells = document.getElementsByClassName("cell"); //- Pobiera elementy HTML o klasie "cell" i przypisuje je do zmiennej cells. Prawdopodobnie są to komórki planszy.
+  const cellsArray = Array.from(cells);                  // Konwertuje kolekcję elementów cells na tablicę i przypisuje ją do zmiennej cellsArray. Dzięki temu możliwe jest łatwiejsze operowanie na tych elementach.
+
+  for (let i = 0; i < cellsArray.length; i++) {    //Rozpoczyna pętlę for, która iteruje po wszystkich elementach w tablicy cellsArray.
+    const cell = cellsArray[i];                    //Przypisuje bieżący element tablicy cellsArray do zmiennej cell. Ta zmienna reprezentuje aktualnie rozpatrywaną komórkę planszy.
+    const shouldLive = Math.random() < 0.5;       //Generuje losową wartość shouldLive (czy komórka powinna być żywa). Wykorzystuje do tego Math.random(), który zwraca losową liczbę z przedziału [0, 1). 
+    //Jeśli wylosowana liczba jest mniejsza niż 0.5, to shouldLive jest prawdziwe (komórka powinna być żywa), 
+
+    if (shouldLive) {
+      cell.classList.add("alive");
+    } else {
+      cell.classList.remove("alive");
+    }
+  }
+}
+
+// Czyszczenie planszy
+const clearButton = document.getElementById("clearButton");
+clearButton.addEventListener("click", clearBoard);
+
+function clearBoard() {
+  const cells = document.getElementsByClassName("cell");
+  const cellsArray = Array.from(cells);
+
+  for (let i = 0; i < cellsArray.length; i++) {
+    const cell = cellsArray[i];
+    cell.classList.remove("alive");
+  }
+}
+
  // Rozpoczęcie gry
  const startButton = document.getElementById("startButton");
  startButton.addEventListener("click", startGame);
@@ -43,6 +78,7 @@
      isGameRunning = true;
      startButton.textContent = "Stop Game";
    }
+
  }
 
 //Ta funkcja updateBoard() jest odpowiedzialna za aktualizację stanu planszy gry. 
@@ -50,7 +86,6 @@
 //Tworzy również pustą tablicę newState, która będzie przechowywać nowy stan komórek.
 //Następnie, dla każdego pola na planszy, sprawdza, czy jest żywe (cellIsAlive) oraz ilość żywych sąsiadów (neighbors) za pomocą funkcji countAliveNeighbors(). 
 //Na podstawie tych informacji decyduje, czy komórka powinna umrzeć, ożyć lub pozostać bez zmiany. W zależności od tego, dodaje false, true lub aktualny stan komórki do tablicy newState.
-
 
  // Aktualizacja planszy
  function updateBoard() {
@@ -84,6 +119,7 @@
      }
    }
  }
+
 
 // Funkcja pomocnicza do zliczania żywych sąsiadów komórki
 function countAliveNeighbors(index, cellsArray) {
